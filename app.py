@@ -1,8 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 import re
 
 app = Flask(__name__)
-# comment
+
+
 def detect_pii(text):
     # Basic PII detection using regular expressions
     pii_patterns = {
@@ -17,9 +18,22 @@ def detect_pii(text):
     for pii_type, pattern in pii_patterns.items():
         matches = re.findall(pattern, text)
         for match in matches:
-            pii_detected.append({'pii_type': pii_type.capitalize(), 'pii_value': match})
-
+            if pii_type == 'name':
+                pii_detected.append({'pii_type': pii_type.capitalize(), 'pii_value': f'{match[0]} {match[1]}'})
+            else:
+                pii_detected.append({'pii_type': pii_type.capitalize(), 'pii_value': match})
     return pii_detected
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+@app.route('/home')
+def back_home():
+    return render_template('index.html')
+
 
 @app.route('/analyze', methods=['POST'])
 def analyze_text():
@@ -38,5 +52,6 @@ def analyze_text():
         response = {'pii_detected': [], 'error': str(e)}
         return jsonify(response)
 
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='127.0.0.1', port=8800, debug=True)
